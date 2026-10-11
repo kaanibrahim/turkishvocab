@@ -6,6 +6,10 @@ function displayText(text){
 }
 
 let score = 0;
+let selectedCards = [];
+let matchedCards = new Set();
+let isResolvingPair = false;
+const cardIds = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
 // LIST OF WORD PAIRS
 //words = [["apple", "elma"], ["book", "kitap"], ["car", "araba"], ["dog", "köpek"], ["house", "ev"], ["water", "su"], ["food", "yemek"], ["school", "okul"]];
@@ -14,130 +18,98 @@ words = [['Allah', 'Allah'], ['doğru', 'true'], ['Tanrı', 'God'], ['abla', 'ol
 
 //FUNCTIONS
 function shuffle(array) {
-  let currentIndex = array.length;
-
-  // While there remain elements to shuffle...
-  while (currentIndex != 0) {
-
-    // Pick a remaining element...
-    let randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // And swap it with the current element.
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex], array[currentIndex]];
-  }
+    for (let currentIndex = array.length - 1; currentIndex > 0; currentIndex -= 1) {
+        const randomIndex = Math.floor(Math.random() * (currentIndex + 1));
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
 }
 
 function selectCard(cardID) {
-    let card = document.getElementById(cardID);
-    if (card.style.backgroundColor === "lightgray") {
+    const card = document.getElementById(cardID);
+    if (!card || isResolvingPair || matchedCards.has(String(cardID)) || card.style.visibility === "hidden") {
+        return;
+    }
+
+    const cardId = String(cardID);
+    if (selectedCards.includes(cardId)) {
+        selectedCards = selectedCards.filter(id => id !== cardId);
         card.style.backgroundColor = "white";
-    } else if (card.style.backgroundColor === "lightgreen") {
-        //do nothing
-    } else {
-        card.style.backgroundColor = "lightgray";
+        return;
     }
-}
 
-function changeCardColor(cardID, color) {
-    let card = document.getElementById(cardID);
-    card.style.backgroundColor = color;
-}
-
-function checkIfTwoSelected() {
-    const cards = [1,2,3,4,5,6,7,8];
-    let num_lightgray = 0;
-    for (const cardNumber of cards) {
-        let card = document.getElementById(cardNumber);
-        if (card.style.backgroundColor === "lightgray") {
-            num_lightgray += 1;
-        }
+    if (selectedCards.length >= 2) {
+        return;
     }
-    if (num_lightgray === 2) {
-        return true;
-    }   
+
+    selectedCards.push(cardId);
+    card.style.backgroundColor = "lightgray";
+    if (selectedCards.length === 2) {
+        resolveSelectedPair();
+    }
 }
 
 function arrangeWords(words) {
-    //creating random indexes
-    let randomIndexes = [];
-    while (randomIndexes.length < 4) {
-        let randomIndex = Math.floor(Math.random() * words.length);
-        if (!randomIndexes.includes(randomIndex)) {
-            randomIndexes.push(randomIndex);
+    if (words.length < 4) {
+        throw new Error("At least four word pairs are required to start a round.");
+    }
+
+    const pairIndexes = shuffle(Array.from({ length: words.length }, (_, index) => index)).slice(0, 4);
+    const roundCards = [];
+    for (const pairId of pairIndexes) {
+        for (const text of words[pairId]) {
+            roundCards.push({ pairId: String(pairId), text });
         }
     }
-    //selecting eight words based on random indexes
-    let eightWords = [];
-    for (index of randomIndexes) {
-        let wordPair = words[index];
-        eightWords.push(wordPair[0]);
-        eightWords.push(wordPair[1]);
-    }
-    //shuffling eightWords
-    shuffle(eightWords);
+    shuffle(roundCards);
 
-    //arranging eightWords onto cards
-    const cards = [1,2,3,4,5,6,7,8];
-    for (card of cards) {
-        let cardElement = document.getElementById(card);
-        cardElement.children[0].innerHTML = eightWords[card - 1];
+    cardIds.forEach((cardId, index) => {
+        const cardElement = document.getElementById(cardId);
+        cardElement.children[0].textContent = roundCards[index].text;
+        cardElement.dataset.pairId = roundCards[index].pairId;
         cardElement.style.backgroundColor = "white";
         cardElement.style.visibility = "visible";
+    });
+    selectedCards = [];
+    matchedCards.clear();
+}
+
+async function resolveSelectedPair() {
+    isResolvingPair = true;
+    const pairCardIds = [...selectedCards];
+    const firstCard = document.getElementById(pairCardIds[0]);
+    const secondCard = document.getElementById(pairCardIds[1]);
+    const isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId;
+
+    firstCard.style.backgroundColor = isMatch ? "lightgreen" : "lightcoral";
+    secondCard.style.backgroundColor = isMatch ? "lightgreen" : "lightcoral";
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    if (isMatch) {
+        pairCardIds.forEach(cardId => {
+            matchedCards.add(cardId);
+            document.getElementById(cardId).style.visibility = "hidden";
+        });
+    } else {
+        pairCardIds.forEach(cardId => {
+            document.getElementById(cardId).style.backgroundColor = "white";
+        });
+    }
+    selectedCards = [];
+    isResolvingPair = false;
+
+    if (matchedCards.size === cardIds.length) {
+        score += 1;
+        document.getElementById("score").textContent = "Score: " + score;
+        arrangeWords(words);
     }
 }
 
-async function checkPair() {
-    while (true) {
-        if (checkIfTwoSelected()) {
-            let selectedCards = [];
-            const cards = [1,2,3,4,5,6,7,8];
-            for (const cardNumber of cards) {
-                let card = document.getElementById(cardNumber);
-                if (card.style.backgroundColor === "lightgray") {
-                    selectedCards.push(cardNumber);
-                }
-            }
-            // check if correct pair
-            if ((words.some(pair => (pair[0] === document.getElementById(selectedCards[0]).children[0].innerHTML && pair[1] === document.getElementById(selectedCards[1]).children[0].innerHTML) || (pair[1] === document.getElementById(selectedCards[0]).children[0].innerHTML && pair[0] === document.getElementById(selectedCards[1]).children[0].innerHTML)))) {
-                for (const cardID of selectedCards) {
-                    changeCardColor(cardID, "lightgreen");
-                }
-                await new Promise(r => setTimeout(r, 500));
-                //hide cards
-                for (const cardID of selectedCards) {
-                    let card = document.getElementById(cardID);
-                    card.style.visibility = "hidden";
-                }
-
-            //check if incorrect pair
-            } else {
-                for (const cardID of selectedCards) {
-                    changeCardColor(cardID, "lightcoral");
-                }
-                await new Promise(r => setTimeout(r, 500));
-                for (const cardID of selectedCards) {
-                    changeCardColor(cardID, "white");
-                }
-
-            }
-        } 
-        //check if all cards are hidden
-        let allHidden = true;
-        const cards = [1,2,3,4,5,6,7,8];
-        for (const cardNumber of cards) {
-            let card = document.getElementById(cardNumber);
-            if (card.style.visibility !== "hidden") {
-                allHidden = false;
-            }
-        }
-        // if all cards are hidden, rearrange words
-        if (allHidden) {
-            arrangeWords(words);
-            score += 1;
-            document.getElementById("score").textContent = "Score: " + score;
-        }
-        await new Promise(r => setTimeout(r, 1));
-    }  
+function startGame() {
+    score = 0;
+    document.getElementById("score").textContent = "Score: " + score;
+    cardIds.forEach(cardId => {
+        document.getElementById(cardId).addEventListener("click", () => selectCard(cardId));
+    });
+    arrangeWords(words);
 }
