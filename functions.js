@@ -5,6 +5,8 @@ function displayText(text){
     document.getElementById("results").appendChild(para);
 }
 
+let score = 0;
+
 // LIST OF WORD PAIRS
 //words = [["apple", "elma"], ["book", "kitap"], ["car", "araba"], ["dog", "köpek"], ["house", "ev"], ["water", "su"], ["food", "yemek"], ["school", "okul"]];
 
@@ -87,7 +89,6 @@ function arrangeWords(words) {
 }
 
 async function checkPair() {
-    score = 0;
     while (true) {
         if (checkIfTwoSelected()) {
             let selectedCards = [];
@@ -135,7 +136,7 @@ async function checkPair() {
         if (allHidden) {
             arrangeWords(words);
             score += 1;
-            document.querySelector("h2").innerHTML = "Score: " + score;
+            document.getElementById("score").textContent = "Score: " + score;
         }
         await new Promise(r => setTimeout(r, 1));
     }  

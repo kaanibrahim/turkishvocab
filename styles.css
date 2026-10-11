@@ -22,3 +22,10 @@
     grid-template-columns: auto auto;
     justify-content: center;
 }
+
+#score {
+    display: block;
+    margin: 1rem;
+    font-size: 1.25rem;
+    font-weight: bold;
+}
