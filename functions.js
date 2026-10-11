@@ -95,7 +95,10 @@ function arrangeWords(words) {
 async function resolveSelectedPair(pairCardIds) {
     const firstCard = document.getElementById(pairCardIds[0]);
     const secondCard = document.getElementById(pairCardIds[1]);
-    const isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId;
+    const firstPair = words[Number(firstCard.dataset.pairId)];
+    const secondPair = words[Number(secondCard.dataset.pairId)];
+    const isMatch = firstPair[0].trim() === secondPair[0].trim()
+        || firstPair[1].trim() === secondPair[1].trim();
 
     pairCardIds.forEach(cardId => resolvingCards.add(cardId));
     firstCard.style.backgroundColor = isMatch ? "lightgreen" : "lightcoral";
