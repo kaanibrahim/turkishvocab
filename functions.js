@@ -55,8 +55,8 @@ function arrangeWords(words) {
     }
 
     const pairIndexes = shuffle(Array.from({ length: words.length }, (_, index) => index)).slice(0, 4);
-    const leftCards = cardIds.slice(0, 4);
-    const rightCards = cardIds.slice(4);
+    const leftCards = cardIds.filter((_, index) => index % 2 === 0);
+    const rightCards = cardIds.filter((_, index) => index % 2 === 1);
 
     leftCards.forEach((cardId, index) => {
         const pairId = pairIndexes[index];
