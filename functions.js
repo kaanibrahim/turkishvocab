@@ -113,3 +113,5 @@ function startGame() {
     });
     arrangeWords(words);
 }
+
+document.addEventListener("DOMContentLoaded", startGame);
