@@ -8,7 +8,7 @@ function displayText(text){
 let score = 0;
 let selectedCards = [];
 let matchedCards = new Set();
-let isResolvingPair = false;
+let resolvingCards = new Set();
 const cardIds = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
 // LIST OF WORD PAIRS
@@ -27,11 +27,11 @@ function shuffle(array) {
 
 function selectCard(cardID) {
     const card = document.getElementById(cardID);
-    if (!card || isResolvingPair || matchedCards.has(String(cardID)) || card.style.visibility === "hidden") {
+    const cardId = String(cardID);
+    if (!card || resolvingCards.has(cardId) || matchedCards.has(cardId) || card.style.visibility === "hidden") {
         return;
     }
 
-    const cardId = String(cardID);
     if (selectedCards.includes(cardId)) {
         selectedCards = selectedCards.filter(id => id !== cardId);
         card.style.backgroundColor = "white";
@@ -45,7 +45,9 @@ function selectCard(cardID) {
     selectedCards.push(cardId);
     card.style.backgroundColor = "lightgray";
     if (selectedCards.length === 2) {
-        resolveSelectedPair();
+        const pairCardIds = [...selectedCards];
+        selectedCards = [];
+        resolveSelectedPair(pairCardIds);
     }
 }
 
@@ -87,15 +89,15 @@ function arrangeWords(words) {
 
     selectedCards = [];
     matchedCards.clear();
+    resolvingCards.clear();
 }
 
-async function resolveSelectedPair() {
-    isResolvingPair = true;
-    const pairCardIds = [...selectedCards];
+async function resolveSelectedPair(pairCardIds) {
     const firstCard = document.getElementById(pairCardIds[0]);
     const secondCard = document.getElementById(pairCardIds[1]);
     const isMatch = firstCard.dataset.pairId === secondCard.dataset.pairId;
 
+    pairCardIds.forEach(cardId => resolvingCards.add(cardId));
     firstCard.style.backgroundColor = isMatch ? "lightgreen" : "lightcoral";
     secondCard.style.backgroundColor = isMatch ? "lightgreen" : "lightcoral";
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -110,8 +112,7 @@ async function resolveSelectedPair() {
             document.getElementById(cardId).style.backgroundColor = "white";
         });
     }
-    selectedCards = [];
-    isResolvingPair = false;
+    pairCardIds.forEach(cardId => resolvingCards.delete(cardId));
 
     if (matchedCards.size === cardIds.length) {
         score += 1;
