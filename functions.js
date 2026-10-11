@@ -55,6 +55,11 @@ function arrangeWords(words) {
     }
 
     const pairIndexes = shuffle(Array.from({ length: words.length }, (_, index) => index)).slice(0, 4);
+    let rightPairIndexes;
+    do {
+        rightPairIndexes = shuffle([...pairIndexes]);
+    } while (rightPairIndexes.some((pairId, index) => pairId === pairIndexes[index]));
+
     const leftCards = cardIds.filter((_, index) => index % 2 === 0);
     const rightCards = cardIds.filter((_, index) => index % 2 === 1);
 
@@ -70,7 +75,7 @@ function arrangeWords(words) {
     });
 
     rightCards.forEach((cardId, index) => {
-        const pairId = pairIndexes[index];
+        const pairId = rightPairIndexes[index];
         const [turkishWord, englishWord] = words[pairId];
         const cardElement = document.getElementById(cardId);
 
