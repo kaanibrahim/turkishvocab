@@ -49,6 +49,26 @@ function selectCard(cardID) {
     }
 }
 
+function normalizeWordPair(pair) {
+    if (!Array.isArray(pair) || pair.length < 2) {
+        return pair;
+    }
+
+    const [firstWord, secondWord] = pair;
+    const firstLooksTurkish = /[çğıöşü]/i.test(firstWord);
+    const secondLooksTurkish = /[çğıöşü]/i.test(secondWord);
+
+    if (firstLooksTurkish && !secondLooksTurkish) {
+        return [firstWord, secondWord];
+    }
+
+    if (!firstLooksTurkish && secondLooksTurkish) {
+        return [secondWord, firstWord];
+    }
+
+    return [firstWord, secondWord];
+}
+
 function arrangeWords(words) {
     if (words.length < 4) {
         throw new Error("At least four word pairs are required to start a round.");
@@ -60,7 +80,7 @@ function arrangeWords(words) {
 
     leftCards.forEach((cardId, index) => {
         const pairId = pairIndexes[index];
-        const [turkishWord, englishWord] = words[pairId];
+        const [turkishWord, englishWord] = normalizeWordPair(words[pairId]);
         const cardElement = document.getElementById(cardId);
 
         cardElement.children[0].textContent = englishWord;
@@ -71,7 +91,7 @@ function arrangeWords(words) {
 
     rightCards.forEach((cardId, index) => {
         const pairId = pairIndexes[index];
-        const [turkishWord, englishWord] = words[pairId];
+        const [turkishWord, englishWord] = normalizeWordPair(words[pairId]);
         const cardElement = document.getElementById(cardId);
 
         cardElement.children[0].textContent = turkishWord;
