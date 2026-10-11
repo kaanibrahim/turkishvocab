@@ -55,21 +55,31 @@ function arrangeWords(words) {
     }
 
     const pairIndexes = shuffle(Array.from({ length: words.length }, (_, index) => index)).slice(0, 4);
-    const roundCards = [];
-    for (const pairId of pairIndexes) {
-        for (const text of words[pairId]) {
-            roundCards.push({ pairId: String(pairId), text });
-        }
-    }
-    shuffle(roundCards);
+    const leftCards = cardIds.slice(0, 4);
+    const rightCards = cardIds.slice(4);
 
-    cardIds.forEach((cardId, index) => {
+    leftCards.forEach((cardId, index) => {
+        const pairId = pairIndexes[index];
+        const [turkishWord, englishWord] = words[pairId];
         const cardElement = document.getElementById(cardId);
-        cardElement.children[0].textContent = roundCards[index].text;
-        cardElement.dataset.pairId = roundCards[index].pairId;
+
+        cardElement.children[0].textContent = englishWord;
+        cardElement.dataset.pairId = String(pairId);
         cardElement.style.backgroundColor = "white";
         cardElement.style.visibility = "visible";
     });
+
+    rightCards.forEach((cardId, index) => {
+        const pairId = pairIndexes[index];
+        const [turkishWord, englishWord] = words[pairId];
+        const cardElement = document.getElementById(cardId);
+
+        cardElement.children[0].textContent = turkishWord;
+        cardElement.dataset.pairId = String(pairId);
+        cardElement.style.backgroundColor = "white";
+        cardElement.style.visibility = "visible";
+    });
+
     selectedCards = [];
     matchedCards.clear();
 }
